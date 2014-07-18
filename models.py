@@ -6,7 +6,8 @@ from utils import human_username, local_today, to_sentence_list
 import logging
 import pytz
 import re
-    
+from notices import slugify
+
 ROOM_OPTIONS = (
     ('Maker Space', 12),
     ('Classroom', 20),
@@ -14,8 +15,8 @@ ROOM_OPTIONS = (
     ('Large Event Room', 98),
     ('Loungey', 30),
     ('Patio', 30)
-  ) 
-    
+  )
+
 # GUESTS_PER_STAFF = 25
 PENDING_LIFETIME = 30 # days
 
@@ -90,13 +91,13 @@ class Event(db.Model):
             .filter('start_time >', local_today()) \
             .filter('status IN', ['approved', 'canceled']) \
             .order('start_time')
-    
+
     @classmethod
     def get_approved_list_with_multiday(cls):
         events = list(cls.all() \
             .filter('end_time >', local_today()) \
             .filter('status IN', ['approved', 'canceled']))
-        
+
         # create dupe event objects for each day of multiday events
         for event in list(events):
             if event.start_time < local_today():
@@ -338,6 +339,62 @@ class Event(db.Model):
         if protocol.search(self.url):
             return self.url
         return "http://"+self.url
+
+    def get_email_text (self, older=None):
+        e_arr = [
+            self.name,
+            self.member.email(),
+            self.human_time(),
+            self.type,
+            self.estimated_size,
+            self.roomlist(),
+            self.contact_name,
+            self.contact_phone,
+            self.url,
+            self.fee,
+            self.details,
+            self.notes
+        ]
+
+
+        indicators = [
+            "Event: ",
+            "Member: ",
+            "When: ",
+            "Type: ",
+            "Size: ",
+            "Rooms: ",
+            "Contact Name:  ",
+            "Contact Phone: ",
+            "URL: ",
+            "Fee: ",
+            "\nDetails: ",
+            "\nNotes: "
+        ]
+
+        comments = [i + str(e) + "\n" for i,e in zip(indicators, e_arr) ]
+
+# If older isn't None, then we have to add changes
+        if older != None:
+            o_arr= [
+                older.name,
+                older.member.email(),
+                older.human_time(),
+                older.type,
+                older.estimated_size,
+                older.roomlist(),
+                older.contact_name,
+                older.contact_phone,
+                older.url,
+                older.fee,
+                older.details,
+                older.notes
+            ]
+            change = "\nChanged from:\n"
+            comments = [c if e == i else c + change + str(o) + "\n" for c,e,o in zip(comments, e_arr, o_arr)]
+
+        comments.append("\nhttp://selfs.hackerdojo.com/self/" + str(self.key().id() )+ "-" + slugify(self.name) )
+        return "\n".join(comments)
 
 class Feedback(db.Model):
     user    = db.UserProperty(auto_current_user_add=True)

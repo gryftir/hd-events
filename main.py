@@ -232,73 +232,47 @@ class EditHandler(webapp.RequestHandler):
                 else:
                     log_desc = ""
 
-                    edit_dict = {
-                        'name': False,
-                        'email': False,
-                        'human_time': False,
-                        'event_type': False,
-                        'estimated_size': False,
-                        'roomlist': False,
-                        'contact_name': False,
-                        'contact_phone': False,
-                        'url': False,
-                        'fee': False,
-                        'details': False,
-                        'notes': False,
-                        'id': False,
-                    }
                     previous_object = Event.get_by_id(int(id))
                     #event.status = 'pending'
                     event.name = self.request.get('name')
                     if (previous_object.name != event.name):
                       log_desc += "<strong>Title:</strong> " + previous_object.name + " to " + event.name + "<br />"
                       event.status = 'pending'
-                      edit_dict['name'] = True
                     event.start_time = start_time
                     if (previous_object.start_time != event.start_time):
                       log_desc += "<strong>Start time:</strong> " + str(previous_object.start_time) + " to " + str(event.start_time) + "<br />"
-                      edit_dict['human_time'] = True
                       if(previous_object.start_time.date != event.start_time.date):
                         event.status = 'pending'
                     event.end_time = end_time
                     if (previous_object.end_time != event.end_time):
-                      edit_dict['human_time'] = True
                       log_desc += "<strong>End time:</strong> " + str(previous_object.end_time) + " to " + str(event.end_time) + "<br />"
                       if(previous_object.end_time.date != event.end_time.date):
                         event.status = 'pending'
                     event.estimated_size = cgi.escape(self.request.get('estimated_size'))
                     if (previous_object.estimated_size != event.estimated_size):
-                      edit_dict['estimated_size'] = True
                       log_desc += "<strong>Est. size:</strong> " + previous_object.estimated_size + " to " + event.estimated_size + "<br />"
                       event.status = 'pending'
                     event.contact_name = cgi.escape(self.request.get('contact_name'))
                     if (previous_object.contact_name != event.contact_name):
-                      edit_dict['contact_name'] = True
                       log_desc += "<strong>Contact:</strong> " + previous_object.contact_name + " to " + event.contact_name + "<br />"
                     event.contact_phone = cgi.escape(self.request.get('contact_phone'))
                     if (previous_object.contact_phone != event.contact_phone):
-                      edit_dict['contact_phone'] = True
                       log_desc += "<strong>Contact phone:</strong> " + previous_object.contact_phone + " to " + event.contact_phone + "<br />"
                     event.details = cgi.escape(self.request.get('details'))
                     if (previous_object.details != event.details):
-                      edit_dict['details'] = True
                       log_desc += "<strong>Details:</strong> " + previous_object.details + " to " + event.details + "<br />"
                     event.url = cgi.escape(self.request.get('url'))
                     if (previous_object.url != event.url):
-                      edit_dict['url'] = True
                       log_desc += "<strong>Url:</strong> " + previous_object.url + " to " + event.url + "<br />"
                     event.fee = cgi.escape(self.request.get('fee'))
                     if (previous_object.fee != event.fee):
-                      edit_dict['fee'] = True
                       log_desc += "<strong>Fee:</strong> " + previous_object.fee + " to " + event.fee + "<br />"
                       event.status = 'pending'
                     event.notes = cgi.escape(self.request.get('notes'))
                     if (previous_object.notes != event.notes):
-                      edit_dict['notes'] = True
                       log_desc += "<strong>Notes:</strong> " + previous_object.notes + " to " + event.notes + "<br />"
                     event.rooms = self.request.get_all('rooms')
                     if (previous_object.rooms != event.rooms):
-                      edit_dict['roomlist'] = True
                       log_desc += "<strong>Rooms changed</strong><br />"
                       log_desc += "<strong>Old room:</strong> " + previous_object.roomlist() + "<br />"
                       log_desc += "<strong>New room:</strong> " + event.roomlist() + "<br />"
@@ -325,17 +299,7 @@ class EditHandler(webapp.RequestHandler):
                         hours = [1,2,3,4,5,6,7,8,9,10,11,12]
                         if log_desc:
                           edited = "<u>Saved changes:</u><br>"+log_desc
-                        notify_event_change(event=event,old_event=
-                                            previous_object, edits=edit_dict, modification=1)
-                        event.put()
-                        self.response.out.write(template.render('templates/edit.html', locals()))
-                    else:
-                        self.response.out.write("Access denied")
-            except NameError, e:
-                logging.log(e)
-                self.response.out.write(template.render('templates/error.html', locals()))
-        else:
-            self.response.out.write("Access denied")
+                        notify_event_change(event=event,old_event= previous_object )
 
 
 class EventHandler(webapp.RequestHandler):

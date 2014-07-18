@@ -17,7 +17,7 @@ if os.environ['SERVER_SOFTWARE'].startswith('Dev'):
     MAIL_OVERRIDE = "nowhere@nowhere.com"
 else:
     MAIL_OVERRIDE = False
-        
+
 def bug_owner_pending(e):
   body = """
 Event: %s
@@ -25,13 +25,13 @@ Owner: %s
 Date: %s
 URL: http://%s/event/%s-%s
 """ % (
-    e.name, 
+    e.name,
     str(e.member),
     e.start_time.strftime('%A, %B %d'),
     os.environ.get('HTTP_HOST'),
     e.key().id(),
     slugify(e.name),)
-  
+
   if not e.is_approved():
     body += """
 Alert! The events team has not approved your event yet.
@@ -44,7 +44,7 @@ Cheers,
 Hacker Dojo Events Team
 events@hackerdojo.com
 """
- 
+
   deferred.defer(mail.send_mail, sender=FROM_ADDRESS, to=possibly_OVERRIDE_to_address(e.member.email()),
    subject="[Pending Event] Your event is still pending: " + e.name,
    body=body, _queue="emailthrottle")
@@ -59,7 +59,7 @@ Owner: %s
 Date: %s
 URL: http://%s/event/%s-%s
 """ % (
-    e.name, 
+    e.name,
     str(e.owner()),
     e.start_time.strftime('%A, %B %d'),
     os.environ.get('HTTP_HOST'),
@@ -77,11 +77,11 @@ Hacker Dojo Events Team
 events@hackerdojo.com
 
 """
- 
+
   deferred.defer(mail.send_mail, sender=FROM_ADDRESS, to=possibly_OVERRIDE_to_address(e.member.email()),
    subject="[Event Reminder] " + e.name,
    body=body, _queue="emailthrottle")
-             
+
 def notify_owner_confirmation(event):
     deferred.defer(mail.send_mail ,sender=FROM_ADDRESS, to=possibly_OVERRIDE_to_address(event.member.email()),
         subject="[New Event] Submitted but **not yet approved**",
@@ -102,50 +102,20 @@ Hacker Dojo Events Team
 events@hackerdojo.com
 
 """ % (
-    event.name, 
+    event.name,
     event.start_time.strftime('%A, %B %d'),
     event.key().id(),
     slugify(event.name),))
 
-
-def notify_event_change(event,modification=0):
-    if (modification):
+def notify_event_change(event,old_event=None):
+    if (old_event):
       subject = "[Event Modified]"
     else:
       subject = "[New Event]"
+    mail_body = event.get_email_text(old_event)
     subject  += ' %s on %s' % (event.name, event.human_time())
     deferred.defer(mail.send_mail, sender=FROM_ADDRESS, to=possibly_OVERRIDE_to_address(NEW_EVENT_ADDRESS),
-        subject=subject,
-        body="""Event: %s
-Member: %s
-When: %s
-Type: %s
-Size: %s
-Rooms: %s
-Contact: %s (%s)
-URL: %s
-Fee: %s
-
-Details: %s
-
-Notes: %s
-
-http://events.hackerdojo.com/event/%s-%s
-""" % (
-    event.name, 
-    event.member.email(), 
-    event.human_time(),
-    event.type,
-    event.estimated_size,
-    event.roomlist(),
-    event.contact_name,
-    event.contact_phone,
-    event.url,
-    event.fee,
-    event.details,
-    event.notes,
-    event.key().id(),
-    slugify(event.name),))
+        subject=subject, body= mail_body)
 
 
 def notify_owner_approved(event):
@@ -169,7 +139,7 @@ def notify_owner_rsvp(event,user):
     deferred.defer(mail.send_mail,sender=FROM_ADDRESS, to=possibly_OVERRIDE_to_address(event.member.email()),
         subject="[Event RSVP] %s" % event.name,
         body="""Good news!  %s <%s> has RSVPd to your event.
-        
+
 Friendly Reminder: As per policy, all members are welcome to sit in on any event at Hacker Dojo.
 
 As a courtesy, the Event RSVP system was built such that event hosts won't be surprised by the number of members attending their event.  Members can RSVP up to 48 hours before the event, after that the RSVP list is locked.
@@ -214,7 +184,7 @@ def notify_hvac_change(iat,mode):
 The inside air temperature was %d.  HVAC is now set to %s.
 
 """ % (iat,mode)
- 
+
   deferred.defer(mail.send_mail, sender=FROM_ADDRESS, to=possibly_OVERRIDE_to_address("hvac-operations@hackerdojo.com"),
    subject="[HVAC auto-pilot] " + mode,
    body=body, _queue="emailthrottle")

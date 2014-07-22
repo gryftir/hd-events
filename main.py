@@ -28,6 +28,7 @@ def slugify(str):
 def event_path(event):
     return '/event/%s-%s' % (event.key().id(), slugify(event.name))
 
+
 class DomainCacheCron(webapp.RequestHandler):
     def get(self):
         noop = dojo('/groups/events',force=True)
@@ -231,59 +232,58 @@ class EditHandler(webapp.RequestHandler):
                     raise ValueError('End time for the event cannot be the same as the start time')
                 else:
                     log_desc = ""
-
                     previous_object = Event.get_by_id(int(id))
                     #event.status = 'pending'
                     event.name = self.request.get('name')
                     if (previous_object.name != event.name):
-                      log_desc += "<strong>Title:</strong> " + previous_object.name + " to " + event.name + "<br />"
-                      event.status = 'pending'
+                        log_desc += "<strong>Title:</strong> " + previous_object.name + " to " + event.name + "<br />"
+                        event.status = 'pending'
                     event.start_time = start_time
                     if (previous_object.start_time != event.start_time):
-                      log_desc += "<strong>Start time:</strong> " + str(previous_object.start_time) + " to " + str(event.start_time) + "<br />"
-                      if(previous_object.start_time.date != event.start_time.date):
-                        event.status = 'pending'
+                        log_desc += "<strong>Start time:</strong> " + str(previous_object.start_time) + " to " + str(event.start_time) + "<br />"
+                        if(previous_object.start_time.date != event.start_time.date):
+                            event.status = 'pending'
                     event.end_time = end_time
                     if (previous_object.end_time != event.end_time):
-                      log_desc += "<strong>End time:</strong> " + str(previous_object.end_time) + " to " + str(event.end_time) + "<br />"
-                      if(previous_object.end_time.date != event.end_time.date):
-                        event.status = 'pending'
+                        log_desc += "<strong>End time:</strong> " + str(previous_object.end_time) + " to " + str(event.end_time) + "<br />"
+                        if(previous_object.end_time.date != event.end_time.date):
+                            event.status = 'pending'
                     event.estimated_size = cgi.escape(self.request.get('estimated_size'))
                     if (previous_object.estimated_size != event.estimated_size):
-                      log_desc += "<strong>Est. size:</strong> " + previous_object.estimated_size + " to " + event.estimated_size + "<br />"
-                      event.status = 'pending'
-                    event.contact_name = cgi.escape(self.request.get('contact_name'))
+                        log_desc += "<strong>Est. size:</strong> " + previous_object.estimated_size + " to " + event.estimated_size + "<br />"
+                        event.status = 'pending'
+                        event.contact_name = cgi.escape(self.request.get('contact_name'))
                     if (previous_object.contact_name != event.contact_name):
-                      log_desc += "<strong>Contact:</strong> " + previous_object.contact_name + " to " + event.contact_name + "<br />"
+                        log_desc += "<strong>Contact:</strong> " + previous_object.contact_name + " to " + event.contact_name + "<br />"
                     event.contact_phone = cgi.escape(self.request.get('contact_phone'))
                     if (previous_object.contact_phone != event.contact_phone):
-                      log_desc += "<strong>Contact phone:</strong> " + previous_object.contact_phone + " to " + event.contact_phone + "<br />"
+                        log_desc += "<strong>Contact phone:</strong> " + previous_object.contact_phone + " to " + event.contact_phone + "<br />"
                     event.details = cgi.escape(self.request.get('details'))
                     if (previous_object.details != event.details):
-                      log_desc += "<strong>Details:</strong> " + previous_object.details + " to " + event.details + "<br />"
+                        log_desc += "<strong>Details:</strong> " + previous_object.details + " to " + event.details + "<br />"
                     event.url = cgi.escape(self.request.get('url'))
                     if (previous_object.url != event.url):
-                      log_desc += "<strong>Url:</strong> " + previous_object.url + " to " + event.url + "<br />"
+                        log_desc += "<strong>Url:</strong> " + previous_object.url + " to " + event.url + "<br />"
                     event.fee = cgi.escape(self.request.get('fee'))
                     if (previous_object.fee != event.fee):
-                      log_desc += "<strong>Fee:</strong> " + previous_object.fee + " to " + event.fee + "<br />"
-                      event.status = 'pending'
+                        log_desc += "<strong>Fee:</strong> " + previous_object.fee + " to " + event.fee + "<br />"
+                        event.status = 'pending'
                     event.notes = cgi.escape(self.request.get('notes'))
                     if (previous_object.notes != event.notes):
-                      log_desc += "<strong>Notes:</strong> " + previous_object.notes + " to " + event.notes + "<br />"
+                        log_desc += "<strong>Notes:</strong> " + previous_object.notes + " to " + event.notes + "<br />"
                     event.rooms = self.request.get_all('rooms')
                     if (previous_object.rooms != event.rooms):
-                      log_desc += "<strong>Rooms changed</strong><br />"
-                      log_desc += "<strong>Old room:</strong> " + previous_object.roomlist() + "<br />"
-                      log_desc += "<strong>New room:</strong> " + event.roomlist() + "<br />"
-                      event.status = 'pending'
+                        log_desc += "<strong>Rooms changed</strong><br />"
+                        log_desc += "<strong>Old room:</strong> " + previous_object.roomlist() + "<br />"
+                        log_desc += "<strong>New room:</strong> " + event.roomlist() + "<br />"
+                        event.status = 'pending'
                     setup_time = cgi.escape(self.request.get('setup_time')) or 0
                     event.setup_time = int(setup_time)
                     if (previous_object.setup_time != event.setup_time):
                         log_desc += "<strong>Setup time changed</strong><br />"
                         log_desc += "<strong>Old time:</strong> %s minutes<br/>" % previous_object.setup_time
                         log_desc += "<strong>New time:</strong> %s minutes<br/>" % event.setup_time
-                    teardown_time = cgi.escape(self.request.get('teardown_time')) or 0
+                        teardown_time = cgi.escape(self.request.get('teardown_time')) or 0
                     event.teardown_time = int(teardown_time)
                     if (previous_object.setup_time != event.teardown_time):
                         log_desc += "<strong>Teardown time changed</strong><br />"
@@ -299,12 +299,19 @@ class EditHandler(webapp.RequestHandler):
                         hours = [1,2,3,4,5,6,7,8,9,10,11,12]
                         if log_desc:
                           edited = "<u>Saved changes:</u><br>"+log_desc
-                        notify_event_change(event=event,old_event= previous_object )
-
+                          notify_event_change(event=event,old_event= previous_object )
+                          event.put()
+                          self.response.out.write(template.render('templates/edit.html', locals()))
+                    else:
+                        self.response.out.write("Access denied")
+            except NameError, e:
+                logging.log(e)
+                self.response.out.write(template.render('templates/error.html', locals()))
+        else:
+            self.response.out.write("Access denied")
 
 class EventHandler(webapp.RequestHandler):
     def get(self, id):
-
         event = Event.get_by_id(int(id))
         if self.request.path.endswith('json'):
             self.response.headers['content-type'] = 'application/json'
@@ -326,7 +333,6 @@ class EventHandler(webapp.RequestHandler):
         event = Event.get_by_id(int(id))
         user = users.get_current_user()
         access_rights = UserRights(user, event)
-
         state = self.request.get('state')
         if state:
             desc = ''
